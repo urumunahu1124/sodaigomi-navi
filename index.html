@@ -33,18 +33,20 @@
 </head>
 <body>
 <div class="wrap">
-  <span class="badge">試作版（実データ第1弾・10自治体）</span>
+  <span class="badge">実データ第1弾・10自治体対応</span>
   <h1>粗大ごみ料金ナビ</h1>
-  <p class="lead">粗大ごみの料金は自治体ごとにまったく違います。同じスプリングマットレスでも、足立区は800円、横浜市は2,200円。まずはクイズで体感してみてください。</p>
+  <p class="lead">「この家具、捨てるのにいくらかかる？」——粗大ごみの料金は自治体ごとにまったく違います。同じスプリングマットレスでも、足立区は800円、横浜市は2,200円。このサイトでは、自治体公式ページで確認した料金と出し方を、品目ごとにまとめています。</p>
 
   <div class="card">
-    <p class="q" id="question"></p>
-    <div class="choices" id="choices"></div>
-    <div class="result" id="result"></div>
-    <button class="next" id="nextBtn">次の問題へ</button>
+    <strong>このサイトでできること</strong>
+    <ul style="line-height:1.9; margin:10px 0 4px; padding-left:20px;">
+      <li><a href="#search">自治体×品目の料金を調べる</a> — 対応10自治体・10品目の料金表と出し方</li>
+      <li><a href="#quiz">料金当てクイズ</a> — 自治体ごとの料金の違いを体感できます</li>
+    </ul>
+    <p style="line-height:1.7; color:#555; margin:10px 0 0;">対応自治体：新宿区・世田谷区・大田区・足立区・練馬区・横浜市・札幌市・名古屋市・大阪市・福岡市（順次拡大予定）</p>
   </div>
 
-  <h2>自治体×品目の料金を調べる</h2>
+  <h2 id="search">自治体×品目の料金を調べる</h2>
   <div class="card">
     <select id="citySelect"></select>
     <table>
@@ -52,6 +54,15 @@
       <tbody id="feeBody"></tbody>
     </table>
     <div class="howto" id="howto"></div>
+  </div>
+
+  <h2 id="quiz">粗大ごみ料金当てクイズ</h2>
+  <p class="lead">料金の違いをクイズで体感してみてください。全5問、すべて実際の自治体料金が正解です。</p>
+  <div class="card">
+    <p class="q" id="question"></p>
+    <div class="choices" id="choices"></div>
+    <div class="result" id="result"></div>
+    <button class="next" id="nextBtn">次の問題へ</button>
   </div>
 
   <div class="cta">
@@ -232,7 +243,7 @@ nBtn.onclick = () => {
   else {
     qEl.textContent = `結果：${QUIZ.length}問中 ${score}問正解！`;
     cEl.innerHTML = '';
-    rEl.innerHTML = '料金は自治体ごとにここまで違います。下の検索で、お住まいの自治体の料金を確認してみてください。';
+    rEl.innerHTML = '料金は自治体ごとにここまで違います。上の「料金を調べる」で、お住まいの自治体の料金を確認してみてください。';
     rEl.style.display = 'block';
     nBtn.style.display = 'none';
   }
