@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>粗大ごみ料金当てクイズ（試作版）</title>
+<style>
+  body { font-family: sans-serif; margin: 0; background: #f6f7f9; color: #222; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 24px 16px 48px; }
+  .badge { display: inline-block; background: #b45309; color: #fff; font-size: 12px; padding: 2px 10px; border-radius: 999px; }
+  h1 { font-size: 24px; margin: 12px 0 8px; }
+  p.lead { color: #555; line-height: 1.7; }
+  .card { background: #fff; border: 1px solid #e2e5ea; border-radius: 12px; padding: 20px; margin-top: 16px; }
+  .q { font-size: 18px; font-weight: bold; margin: 0 0 12px; }
+  .choices { display: grid; gap: 10px; }
+  button.choice { font-size: 16px; padding: 12px; border-radius: 8px; border: 1px solid #cbd2dc; background: #fff; cursor: pointer; text-align: left; }
+  button.choice:hover { background: #eef4ff; }
+  .result { margin-top: 14px; line-height: 1.7; display: none; }
+  .result .ok { color: #15803d; font-weight: bold; }
+  .result .ng { color: #b91c1c; font-weight: bold; }
+  .next { margin-top: 14px; font-size: 15px; padding: 10px 18px; border-radius: 8px; border: none; background: #2563eb; color: #fff; cursor: pointer; display: none; }
+  .note { font-size: 12px; color: #777; margin-top: 20px; line-height: 1.6; }
+  .cta { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 16px 20px; margin-top: 16px; line-height: 1.7; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="badge">試作版プロトタイプ</span>
+  <h1>粗大ごみ料金当てクイズ</h1>
+  <p class="lead">「この家具、捨てるのにいくらかかる？」は自治体ごとにバラバラです。あなたの街の料金、当てられますか？</p>
+
+  <div class="card">
+    <p class="q" id="question"></p>
+    <div class="choices" id="choices"></div>
+    <div class="result" id="result"></div>
+    <button class="next" id="nextBtn">次の問題へ</button>
+  </div>
+
+  <div class="cta">
+    <strong>自分で運べない・量が多いときは</strong><br>
+    不用品回収の無料見積もりという手もあります。（※アフィリエイトリンクは提携承認後に設置します）
+  </div>
+
+  <p class="note">※これは動作確認用の試作版です。表示している料金はサンプルデータであり、実際の料金は各自治体の公式ページでご確認ください。本番版では自治体公式情報に基づくデータベースに差し替えます。</p>
+</div>
+
+<script>
+const QUIZ = [
+  { city: "東京都新宿区", item: "ソファ（2人掛け）", choices: [800, 1300, 2300], answer: 1300, memo: "ソファは大きさで料金が変わります。" },
+  { city: "大阪市", item: "自転車", choices: [200, 500, 1000], answer: 500, memo: "自転車は比較的安い区分に入る自治体が多いです。" },
+  { city: "名古屋市", item: "タンス", choices: [600, 1000, 1500], answer: 1000, memo: "タンスは高さ・幅で区分が分かれます。" },
+  { city: "福岡市", item: "ベッドフレーム", choices: [300, 700, 1200], answer: 700, memo: "ベッドはフレームとマットレスが別料金になることが多いです。" },
+  { city: "札幌市", item: "冷蔵庫（リサイクル対象外の扱いを確認）", choices: [0, 900, 2000], answer: 900, memo: "家電リサイクル法対象品目は自治体収集の対象外の場合があります。" }
+];
+let idx = 0, score = 0;
+const qEl = document.getElementById('question');
+const cEl = document.getElementById('choices');
+const rEl = document.getElementById('result');
+const nBtn = document.getElementById('nextBtn');
+
+function render() {
+  const q = QUIZ[idx];
+  qEl.textContent = `Q${idx + 1}. ${q.city}で「${q.item}」を粗大ごみに出すといくら？`;
+  cEl.innerHTML = '';
+  rEl.style.display = 'none';
+  nBtn.style.display = 'none';
+  q.choices.forEach(v => {
+    const b = document.createElement('button');
+    b.className = 'choice';
+    b.textContent = `${v.toLocaleString()}円`;
+    b.onclick = () => answer(v);
+    cEl.appendChild(b);
+  });
+}
+function answer(v) {
+  const q = QUIZ[idx];
+  const correct = v === q.answer;
+  if (correct) score++;
+  rEl.innerHTML = correct
+    ? `<span class="ok">正解！</span> ${q.city}の「${q.item}」は ${q.answer.toLocaleString()}円。${q.memo}`
+    : `<span class="ng">残念…</span> 正解は ${q.answer.toLocaleString()}円。${q.memo}`;
+  rEl.style.display = 'block';
+  nBtn.style.display = 'inline-block';
+  nBtn.textContent = idx === QUIZ.length - 1 ? '結果を見る' : '次の問題へ';
+  [...cEl.children].forEach(b => b.disabled = true);
+}
+nBtn.onclick = () => {
+  idx++;
+  if (idx < QUIZ.length) { render(); }
+  else {
+    qEl.textContent = `結果：${QUIZ.length}問中 ${score}問正解！`;
+    cEl.innerHTML = '';
+    rEl.innerHTML = '自治体によって料金はここまで違います。本番版では、お住まいの自治体を選んで品目ごとの料金と出し方をそのまま調べられます。';
+    rEl.style.display = 'block';
+    nBtn.style.display = 'none';
+  }
+};
+render();
+</script>
+</body>
+</html>
