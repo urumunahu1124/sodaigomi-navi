@@ -3,15 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>粗大ごみ料金当てクイズ（試作版）</title>
+<title>粗大ごみ料金ナビ（試作版）｜自治体別・品目別の料金と出し方</title>
 <style>
   body { font-family: sans-serif; margin: 0; background: #f6f7f9; color: #222; }
-  .wrap { max-width: 640px; margin: 0 auto; padding: 24px 16px 48px; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 24px 16px 48px; }
   .badge { display: inline-block; background: #b45309; color: #fff; font-size: 12px; padding: 2px 10px; border-radius: 999px; }
   h1 { font-size: 24px; margin: 12px 0 8px; }
+  h2 { font-size: 19px; margin: 32px 0 10px; }
   p.lead { color: #555; line-height: 1.7; }
   .card { background: #fff; border: 1px solid #e2e5ea; border-radius: 12px; padding: 20px; margin-top: 16px; }
-  .q { font-size: 18px; font-weight: bold; margin: 0 0 12px; }
+  .q { font-size: 17px; font-weight: bold; margin: 0 0 12px; }
   .choices { display: grid; gap: 10px; }
   button.choice { font-size: 16px; padding: 12px; border-radius: 8px; border: 1px solid #cbd2dc; background: #fff; cursor: pointer; text-align: left; }
   button.choice:hover { background: #eef4ff; }
@@ -19,15 +20,22 @@
   .result .ok { color: #15803d; font-weight: bold; }
   .result .ng { color: #b91c1c; font-weight: bold; }
   .next { margin-top: 14px; font-size: 15px; padding: 10px 18px; border-radius: 8px; border: none; background: #2563eb; color: #fff; cursor: pointer; display: none; }
+  select { font-size: 16px; padding: 10px; border-radius: 8px; border: 1px solid #cbd2dc; width: 100%; }
+  table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 14px; }
+  th, td { border: 1px solid #e2e5ea; padding: 8px; text-align: left; }
+  th { background: #f1f5f9; }
+  td.fee { text-align: right; white-space: nowrap; font-weight: bold; }
+  .howto { margin-top: 14px; line-height: 1.7; font-size: 14px; color: #444; }
   .note { font-size: 12px; color: #777; margin-top: 20px; line-height: 1.6; }
-  .cta { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 16px 20px; margin-top: 16px; line-height: 1.7; }
+  .cta { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 16px 20px; margin-top: 24px; line-height: 1.7; }
+  a { color: #2563eb; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <span class="badge">試作版プロトタイプ</span>
-  <h1>粗大ごみ料金当てクイズ</h1>
-  <p class="lead">「この家具、捨てるのにいくらかかる？」は自治体ごとにバラバラです。あなたの街の料金、当てられますか？</p>
+  <span class="badge">試作版（実データ第1弾・10自治体）</span>
+  <h1>粗大ごみ料金ナビ</h1>
+  <p class="lead">粗大ごみの料金は自治体ごとにまったく違います。同じスプリングマットレスでも、足立区は800円、横浜市は2,200円。まずはクイズで体感してみてください。</p>
 
   <div class="card">
     <p class="q" id="question"></p>
@@ -36,29 +44,163 @@
     <button class="next" id="nextBtn">次の問題へ</button>
   </div>
 
+  <h2>自治体×品目の料金を調べる</h2>
+  <div class="card">
+    <select id="citySelect"></select>
+    <table>
+      <thead><tr><th>品目</th><th>料金</th><th>備考</th></tr></thead>
+      <tbody id="feeBody"></tbody>
+    </table>
+    <div class="howto" id="howto"></div>
+  </div>
+
   <div class="cta">
     <strong>自分で運べない・量が多いときは</strong><br>
     不用品回収の無料見積もりという手もあります。（※アフィリエイトリンクは提携承認後に設置します）
   </div>
 
-  <p class="note">※これは動作確認用の試作版です。表示している料金はサンプルデータであり、実際の料金は各自治体の公式ページでご確認ください。本番版では自治体公式情報に基づくデータベースに差し替えます。</p>
+  <p class="note">※料金は2026年11月26日に各自治体の公式ページで確認した収集手数料です。サイズ区分によって料金が変わる品目があります。最新情報は各自治体の公式ページでご確認ください。テレビ・冷蔵庫・洗濯機・エアコンなどの家電リサイクル法対象品は、どの自治体でも粗大ごみ収集の対象外です。</p>
 </div>
 
 <script>
 const QUIZ = [
-  { city: "東京都新宿区", item: "ソファ（2人掛け）", choices: [800, 1300, 2300], answer: 1300, memo: "ソファは大きさで料金が変わります。" },
-  { city: "大阪市", item: "自転車", choices: [200, 500, 1000], answer: 500, memo: "自転車は比較的安い区分に入る自治体が多いです。" },
-  { city: "名古屋市", item: "タンス", choices: [600, 1000, 1500], answer: 1000, memo: "タンスは高さ・幅で区分が分かれます。" },
-  { city: "福岡市", item: "ベッドフレーム", choices: [300, 700, 1200], answer: 700, memo: "ベッドはフレームとマットレスが別料金になることが多いです。" },
-  { city: "札幌市", item: "冷蔵庫（リサイクル対象外の扱いを確認）", choices: [0, 900, 2000], answer: 900, memo: "家電リサイクル法対象品目は自治体収集の対象外の場合があります。" }
+  { city: "横浜市", item: "ベッドマットレス（スプリング付き）", choices: [1000, 1500, 2200], answer: 2200, memo: "横浜市で一番高い区分です。スプリングなしだと1,000円。" },
+  { city: "福岡市", item: "自転車", choices: [300, 500, 900], answer: 300, memo: "自転車は福岡市300円〜名古屋市1,000円まで、自治体で3倍以上の差があります。" },
+  { city: "新宿区", item: "ソファ（2人掛け）", choices: [900, 1300, 2300], answer: 1300, memo: "東京23区のソファ2人掛けは1,300円でほぼ横並びです（足立区のみ1,200円）。" },
+  { city: "名古屋市", item: "マットレス（スプリング入り）", choices: [500, 1000, 2000], answer: 2000, memo: "名古屋市は2026年10月に料金改定がありました（自転車も500円→1,000円）。" },
+  { city: "足立区", item: "ベッドマット（シングル）", choices: [400, 800, 1300], answer: 800, memo: "足立区は全体に安め。しかも持ち込みは無料です（事前申込が必要・年度20個まで）。" }
 ];
+
+const CITIES = {
+  "新宿区": { url: "https://www.shinjuku-sodai.com", howto: "事前申込制。電話 03-5304-8080（月〜土 8:00〜19:00）／インターネット申込可。処理券はA券200円・B券300円の組み合わせを区内コンビニ等で購入。", items: [
+    ["ソファ（2人掛け）", "1,300円", "1人掛け900円／3人掛け2,300円"],
+    ["ベッド枠（シングル）", "1,300円", "マットレスは別料金"],
+    ["マットレス（スプリング）", "1,300円", "スプリングなしは400円"],
+    ["タンス（大型）", "2,300円", "箱物家具：2辺合計270cm超〜360cm以下"],
+    ["自転車", "900円", "16インチ以上。未満は400円"],
+    ["テーブル", "900円", "長辺100cm以上150cm未満"],
+    ["本棚", "400〜3,200円", "箱物家具のサイズ区分による"],
+    ["椅子（1脚）", "400円", ""],
+    ["カーペット", "900円", "1畳超。1畳以下は400円"],
+    ["布団", "400円", "1枚あたり"]
+  ]},
+  "世田谷区": { url: "https://www.sodai-setagaya.jp", howto: "事前申込制。電話 03-5715-1133（月〜土 8:00〜19:00）／インターネット申込可。オンライン決済（カード・PayPay）なら処理券不要。持ち込みは収集の半額程度。", items: [
+    ["ソファ（2人掛け）", "1,300円", "横幅70cm超〜150cm以下"],
+    ["ベッド枠（シングル）", "1,300円", "ダブル・二段は2,300円"],
+    ["マットレス（スプリング）", "1,300円", "スプリングなしは400円"],
+    ["タンス（大型）", "1,300円", "収納家具(C)：2辺合計270cm以下"],
+    ["自転車", "900円", "タイヤ径16インチ超"],
+    ["テーブル", "900円", "最大辺80cm超〜160cm以下"],
+    ["本棚", "1,300円", "タンスと同じ区分(C)"],
+    ["椅子（1脚）", "400円", "10kg以下"],
+    ["カーペット", "900円", "2畳超〜6畳以下"],
+    ["布団", "400円", "1枚あたり（掛け・敷き別）"]
+  ]},
+  "大田区": { url: "https://www.ota-sodai.com", howto: "事前申込制。電話 0570-037-530（日曜・祝日も受付）／インターネット申込可。京浜島への持ち込みは電話申込のみ、手数料は品目により免除・減額。", items: [
+    ["ソファ（2人掛け）", "1,300円", "3人以上用は2,300円"],
+    ["ベッド枠（シングル）", "1,300円", "マットレスは別料金"],
+    ["マットレス（スプリング）", "1,300円", "丸められる薄手は300円"],
+    ["タンス（大型）", "2,300円", "箱物家具：2辺合計270cm以上360cm未満の例"],
+    ["自転車", "900円", "16インチ以上。1回5台まで"],
+    ["テーブル", "900円", "長辺75cm以上150cm未満"],
+    ["本棚", "区分制", "箱物家具のサイズ区分による"],
+    ["椅子（1脚）", "300円", ""],
+    ["カーペット", "900円", "1畳以上。未満は300円"],
+    ["布団", "300円", "1枚あたり"]
+  ]},
+  "足立区": { url: "https://www.city.adachi.tokyo.jp/seso/kurashi/kankyo/gomi-wakekata/sodai.html", howto: "事前申込制。電話 03-6747-5100（月〜土 8:00〜19:00）／インターネット・チャットボット可。持ち込みは無料（事前申込必須、一世帯・年度内20個まで）。", items: [
+    ["ソファ（2人掛け）", "1,200円", "一人用は400円"],
+    ["ベッド枠（シングル）", "1,200円", "ダブルも1,200円。パイプベッド800円"],
+    ["マットレス（スプリング）", "800円", "薄手マットレスは400円"],
+    ["タンス（大型）", "1,200円", "箱物家具：高さ＋幅270cm以下の例"],
+    ["自転車", "400円", "電動アシストは800円"],
+    ["テーブル", "400円", "最大辺1.5m未満"],
+    ["本棚", "区分制", "箱物家具のサイズ区分による"],
+    ["椅子（1脚）", "400円", ""],
+    ["カーペット", "400円", "敷物・ホットカーペット区分"],
+    ["布団", "400円", "1枚あたり"]
+  ]},
+  "練馬区": { url: "https://www.sodai-nerima.jp", howto: "事前申込必須（収集・持込とも）。電話 03-5703-5399／インターネット24時間。ネットで収集申込の場合のみオンライン決済可（2026年4月開始）。持込は収集の半額程度。", items: [
+    ["ソファ（2人掛け）", "1,300円", "持込700円"],
+    ["ベッド枠（シングル）", "1,300円", "公式表ではマット込み扱い。持込700円"],
+    ["マットレス（スプリング）", "1,300円", "スプリングなし薄手は400円"],
+    ["タンス（大型）", "400〜2,300円", "箱物家具：2辺合計の3区分"],
+    ["自転車", "900円", "16インチ以上。持込500円"],
+    ["テーブル", "400〜2,300円", "最大辺の3区分"],
+    ["本棚", "400〜2,300円", "タンスと同じ区分"],
+    ["椅子（1脚）", "400円", "持込200円"],
+    ["カーペット", "400〜900円", "3畳以下400円／3畳超900円"],
+    ["布団", "400円", "1点あたり。持込200円"]
+  ]},
+  "横浜市": { url: "https://www.city.yokohama.lg.jp/kurashi/sumai-kurashi/gomi-recycle/gomi/shushu/sodaigomi/dashikata/sodaigomi.html", howto: "事前申込必須。電話 0570-200-530（月〜土 8:30〜17:00）／インターネット・LINE・チャット可。受付から収集まで約2週間、1回9個まで。ネット申込はカード・PayPay決済可。", items: [
+    ["ソファ（2人掛け）", "1,000円", "1人用は500円"],
+    ["ベッド枠（シングル）", "1,000円", "枠のみ。マットレスは別料金"],
+    ["マットレス（スプリング）", "2,200円", "市の最高額区分。スプリングなし1,000円"],
+    ["タンス（大型）", "1,000〜1,500円", "最長辺1m未満1,000円／1m以上1,500円"],
+    ["自転車", "500円", "電動自転車も500円"],
+    ["テーブル", "500〜1,000円", "最長辺1m未満500円／1m以上1,000円"],
+    ["本棚", "1,000〜1,500円", "タンスと同じ区分"],
+    ["椅子（1脚）", "200円", ""],
+    ["カーペット", "500円", "ホットカーペット含む"],
+    ["布団", "200円", "2枚まで1組"]
+  ]},
+  "札幌市": { url: "https://www.city.sapporo.jp/s068/18347.html", howto: "呼称は「大型ごみ」。申込必須（シール購入前に申込）。電話 011-281-8153（9:00〜16:30、日曜除く）／インターネット24時間（1回10個まで）。ネット受付は電子決済可。", items: [
+    ["ソファ（2人掛け）", "900円", "応接用いす区分。1人用500円"],
+    ["ベッド枠（シングル）", "500円", "ダブル900円"],
+    ["マットレス（スプリング）", "1,800円", "スプリングなしは200円"],
+    ["タンス（大型）", "1,300円", "高さ1m以上。未満は500円"],
+    ["自転車", "500円", "防犯登録の抹消が必要"],
+    ["テーブル", "500円", "最大辺1m以上。未満は200円"],
+    ["本棚", "900円", "戸棚区分（高さ1m以上）"],
+    ["椅子（1脚）", "200円", ""],
+    ["カーペット", "500円", "3畳超。以下は200円"],
+    ["布団", "200円", "3枚まで一括"]
+  ]},
+  "名古屋市": { url: "https://www.city.nagoya.jp/kurashi/gomi/1012183/1035058/1012184/1012185.html", howto: "2026年10月に料金改定。収集は月1回・地域ごとに決まった日、事前申込制。電話 0120-758-530（平日9:00〜17:00）／インターネット申込は収集日の7日前締切。ネット申込はキャッシュレス決済可。", items: [
+    ["ソファ（2人掛け）", "1,000円", "1人用500円／3人以上1,500円"],
+    ["ベッド枠（シングル）", "1,000円", "ダブル以上は2,500円"],
+    ["マットレス（スプリング）", "2,000円", "スプリングなし500円"],
+    ["タンス（大型）", "2,000円", "最大辺120cm超。以下は1,500円"],
+    ["自転車", "1,000円", "2026年10月改定で500円→1,000円"],
+    ["テーブル", "1,000円", "天板65cm超〜120cm以下"],
+    ["本棚", "1,000円", "最大辺120cm以下。超は1,500円"],
+    ["椅子（1脚）", "250円", ""],
+    ["カーペット", "250円", "6畳以下。超は500円"],
+    ["布団", "250円", "2枚まで1組"]
+  ]},
+  "大阪市": { url: "https://www.city.osaka.lg.jp/kankyo/page/0000384507.html", howto: "事前申込必須。電話 0120-79-0053（月〜土 9:00〜17:00）／インターネット申込は収集日を指定可（最短3日後〜）。ネット申込時はキャッシュレス決済可で券不要。", items: [
+    ["ソファ（2人掛け）", "1,000円", "一人掛けは700円"],
+    ["ベッド枠（シングル）", "1,000円", "マットレス類は別料金"],
+    ["マットレス（スプリング）", "700円", "シングル。ダブルは1,000円"],
+    ["タンス（大型）", "1,000円", "3辺合計2.5m以上"],
+    ["自転車", "400円", "電動機付（バッテリー除く）は700円"],
+    ["テーブル", "1,000円", "天板1m以上。未満は400円"],
+    ["本棚", "1,000円", "タンスと同じ3辺合計区分"],
+    ["椅子（1脚）", "200円", ""],
+    ["カーペット", "400円", "6畳以上。未満は200円"],
+    ["布団", "200円", "4枚まで1点"]
+  ]},
+  "福岡市": { url: "https://sodaigomi-kankyo.city.fukuoka.lg.jp/list.cgi", howto: "事前申込必須。電話 092-731-1153（月〜土 9:00〜17:00）／インターネット・LINE（@fukuokacity_sdg）可。収集は地域ごとに決まった曜日。LINE受付のみオンライン決済可。", items: [
+    ["ソファ（2人掛け）", "1,000円", "1人用ソファは500円"],
+    ["ベッド枠（シングル）", "500円", "枠のみ。マットレスは別料金"],
+    ["マットレス（スプリング）", "1,000円", "スプリングなし500円"],
+    ["タンス（大型）", "1,000円", "高さ1m以上・横幅1m以上"],
+    ["自転車", "300円", "1回5台まで。防犯登録の抹消が必要"],
+    ["テーブル", "1,000円", "高さ50cm以上・長辺1m以上"],
+    ["本棚", "1,000円", "高さ1m以上・横幅1m以上"],
+    ["椅子（1脚）", "300円", ""],
+    ["カーペット", "300円", "サイズ区分なし"],
+    ["布団", "300円", "70×70×140cm以下に束ねたもの"]
+  ]}
+};
+
 let idx = 0, score = 0;
 const qEl = document.getElementById('question');
 const cEl = document.getElementById('choices');
 const rEl = document.getElementById('result');
 const nBtn = document.getElementById('nextBtn');
 
-function render() {
+function renderQuiz() {
   const q = QUIZ[idx];
   qEl.textContent = `Q${idx + 1}. ${q.city}で「${q.item}」を粗大ごみに出すといくら？`;
   cEl.innerHTML = '';
@@ -86,16 +228,33 @@ function answer(v) {
 }
 nBtn.onclick = () => {
   idx++;
-  if (idx < QUIZ.length) { render(); }
+  if (idx < QUIZ.length) { renderQuiz(); }
   else {
     qEl.textContent = `結果：${QUIZ.length}問中 ${score}問正解！`;
     cEl.innerHTML = '';
-    rEl.innerHTML = '自治体によって料金はここまで違います。本番版では、お住まいの自治体を選んで品目ごとの料金と出し方をそのまま調べられます。';
+    rEl.innerHTML = '料金は自治体ごとにここまで違います。下の検索で、お住まいの自治体の料金を確認してみてください。';
     rEl.style.display = 'block';
     nBtn.style.display = 'none';
   }
 };
-render();
+renderQuiz();
+
+const sel = document.getElementById('citySelect');
+const feeBody = document.getElementById('feeBody');
+const howtoEl = document.getElementById('howto');
+Object.keys(CITIES).forEach(name => {
+  const o = document.createElement('option');
+  o.value = name; o.textContent = name;
+  sel.appendChild(o);
+});
+function renderCity() {
+  const c = CITIES[sel.value];
+  feeBody.innerHTML = c.items.map(([item, fee, memo]) =>
+    `<tr><td>${item}</td><td class="fee">${fee}</td><td>${memo}</td></tr>`).join('');
+  howtoEl.innerHTML = `<strong>出し方（${sel.value}）</strong>：${c.howto}<br>公式ページ：<a href="${c.url}" target="_blank" rel="noopener">${c.url}</a>`;
+}
+sel.onchange = renderCity;
+renderCity();
 </script>
 </body>
 </html>
