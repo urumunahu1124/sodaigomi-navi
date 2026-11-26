@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://urumunahu1124.github.io/sodaigomi-navi/sitemap.xml
